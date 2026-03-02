@@ -183,3 +183,47 @@ mvn spring-boot:run
 - 图片压缩、CDN 存储（OSS/MinIO）
 - 管理后台（内容审核、用户封禁）
 
+
+
+## 八、IDEA 打开与目录自检
+
+如果 IDEA 无法正常识别项目，请按下列顺序检查：
+
+1. 根目录必须存在 `pom.xml`（当前项目已存在）。
+2. 源码目录应包含 `src/main/java`（当前仓库中未发现 Java 源码，只看到 `src/main/resources`）。
+3. 在 IDEA 中使用 **File -> Open** 直接打开项目根目录 `/workspace/codex`，并选择以 Maven 项目导入。
+4. 在 **Settings -> Build, Execution, Deployment -> Build Tools -> Maven** 中确认 Maven 使用可用仓库镜像（避免依赖下载失败）。
+
+> 如果你的本地目录也缺少 `src/main/java`，说明当前代码包不完整；IDEA 可以打开 Maven 工程，但不会有业务代码可编译。
+
+## 九、IDEA 无数据库“虚拟启动”
+
+为了在不连接 MySQL 的情况下先把 Spring Boot 跑起来，项目新增了 `application-nodb.yml` 配置。
+
+### 1) 在 IDEA 中添加启动配置
+
+- Run/Debug Configurations -> Spring Boot
+- Main class: 你的启动类（例如 `com.personal.site.PersonalSiteApplication`）
+- Active profiles: `nodb`
+
+或使用 VM options：
+
+```bash
+-Dspring.profiles.active=nodb
+```
+
+### 2) 该模式会做什么
+
+- 禁用 `DataSourceAutoConfiguration`
+- 禁用 `HibernateJpaAutoConfiguration`
+- 禁用 JPA Repository 自动创建
+
+因此可用于：
+- 联调不依赖数据库的接口/中间件；
+- 先验证 Spring 容器、配置、文件上传目录等是否正常。
+
+### 3) 命令行等价启动方式
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=nodb
+```

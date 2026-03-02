@@ -183,3 +183,86 @@ mvn spring-boot:run
 - 图片压缩、CDN 存储（OSS/MinIO）
 - 管理后台（内容审核、用户封禁）
 
+
+
+## 八、IDEA 打开与目录自检（含“outside of module source root”修复）
+
+如果 IDEA 提示：
+
+> Java file is located outside of the module source root, so it won't be compiled
+
+通常是 **源码根目录标记** 或 **文件路径与包名不一致** 导致。
+
+### 1) 先确认目录结构
+
+标准 Maven 结构应为：
+
+```text
+pom.xml
+src/main/java
+src/main/resources
+src/test/java
+```
+
+并且 Java 文件路径要和 `package` 一致，例如：
+
+- 包名：`package com.personal.site;`
+- 文件路径必须是：`src/main/java/com/personal/site/PersonalSiteApplication.java`
+
+> 如果你把 `PersonalSiteApplication.java` 放在 `src/main/java/` 根下（而不是 `com/personal/site/` 目录），IDEA 就可能报你截图中的警告。
+
+### 2) 在 IDEA 里修复 Source Root
+
+1. 右键 `src/main/java` -> **Mark Directory as -> Sources Root**。
+2. 右键 `src/test/java` -> **Mark Directory as -> Test Sources Root**（如果存在）。
+3. 右键 `src/main/resources` -> **Mark Directory as -> Resources Root**。
+
+### 3) 重新导入 Maven
+
+1. 打开右侧 Maven 工具窗口，点击 **Reload All Maven Projects**。
+2. `File -> Project Structure -> Modules`，确认模块的 Sources 中 `src/main/java` 已是蓝色 Sources Root。
+3. 若仍异常，执行 `File -> Invalidate Caches / Restart`。
+
+---
+
+## 九、IDEA 无数据库“虚拟启动”
+
+为了在不连接 MySQL 的情况下先把 Spring Boot 跑起来，项目提供 `application-nodb.yml` 配置。
+
+### 1) 在 IDEA 中添加启动配置
+
+- Run/Debug Configurations -> Spring Boot
+- Main class: `com.personal.site.PersonalSiteApplication`
+- Active profiles: `nodb`
+
+或使用 VM options：
+
+```bash
+-Dspring.profiles.active=nodb
+```
+
+### 2) 该模式会做什么
+
+- 禁用 `DataSourceAutoConfiguration`
+- 禁用 `HibernateJpaAutoConfiguration`
+- 禁用 JPA Repository 自动创建
+
+因此可用于：
+- 先验证 Spring 容器是否可启动；
+- 联调不依赖数据库的接口；
+- 验证上传目录、JWT 配置等基础能力。
+
+### 3) 命令行等价启动方式
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=nodb
+```
+
+### 4) 若启动类右上角没有绿色运行按钮
+
+通常是 IDEA 没把该文件识别为模块源码：
+
+- 先完成“第 2 步 Source Root 标记”；
+- 再执行 Maven Reload；
+- 最后右键启动类，选择 **Run 'PersonalSiteApplication.main()'**。
+

@@ -227,3 +227,30 @@ mvn spring-boot:run
 ```bash
 mvn spring-boot:run -Dspring-boot.run.profiles=nodb
 ```
+
+## 十、投放数据 ZIP 一键切分（按“场景名字”优先）
+
+新增脚本：`tools/split_zip_csv.py`
+
+### 功能
+- 输入：一个 zip 压缩包（内部含 csv）。
+- 输出：多个小于 50MB 的 csv 文件（默认阈值可改）。
+- 切分规则：
+  1. 先按列 `场景名字` 分文件；
+  2. 同一场景若仍超过 50MB，则继续按行切分成 `part001/part002...`。
+
+### 命令行用法
+```bash
+python tools/split_zip_csv.py /path/to/你的数据.zip
+```
+
+常用参数：
+```bash
+python tools/split_zip_csv.py /path/to/你的数据.zip \
+  --out-dir ./output_split \
+  --scene-col 场景名字 \
+  --max-mb 50
+```
+
+### 给业务同学的更简单方式（Windows）
+可直接双击 `tools/run_split.bat`，按提示粘贴 zip 路径即可运行。
